@@ -244,7 +244,7 @@ GLuint CompileShaders()
 // VBO Functions - click on + to expand
 #pragma region VBO_FUNCTIONS
 
-ModelData generateObjectBufferMesh(const char* file_name, int meshIndex) {
+void generateObjectBufferMesh(const char* file_name, int meshIndex) {
 	/*----------------------------------------------------------------------------
 	LOAD MESH HERE AND COPY INTO BUFFERS
 	----------------------------------------------------------------------------*/
@@ -252,7 +252,7 @@ ModelData generateObjectBufferMesh(const char* file_name, int meshIndex) {
 	// Note: you may get an error "vector subscript out of range" if you are using this code for a mesh that doesnt have positions and normals
 	// Might be an idea to do a check for that before generating and binding the buffer.
 
-	ModelData model = load_mesh(file_name);
+	mesh_data[meshIndex] = load_mesh(file_name);
 	
 	// Find attributes
 	loc1[meshIndex] = glGetAttribLocation(shaderProgramID, "vertex_position");
@@ -290,7 +290,6 @@ ModelData generateObjectBufferMesh(const char* file_name, int meshIndex) {
 	//	glEnableVertexAttribArray (loc3);
 	//	glBindBuffer (GL_ARRAY_BUFFER, vt_vbo);
 	//	glVertexAttribPointer (loc3, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-	return model;
 }
 #pragma endregion VBO_FUNCTIONS
 
@@ -448,12 +447,10 @@ void init()
 	shaderProgramID = CompileShaders();
 
 	// Load pumpkin mesh
-	ModelData pumpkin = generateObjectBufferMesh(PUMPKIN_MESH, 0);
-	mesh_data[0] = pumpkin;
+	generateObjectBufferMesh(PUMPKIN_MESH, 0);
 
 	// Load skull mesh
-	ModelData skull = generateObjectBufferMesh(SKULL_MESH, 1);
-	mesh_data[1] = skull;
+	generateObjectBufferMesh(SKULL_MESH, 1);
 
 	// Initialise root model
 	model = glm::rotate(glm::mat4(1.0f), 0.0f, glm::vec3(0.0f, 0.0f, 1.0f));

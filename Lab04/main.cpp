@@ -61,10 +61,7 @@ GLuint shaderProgramID;
 ModelData mesh_data[2];
 unsigned int mesh_vaos[2];
 
-unsigned int vp_vbo[2];
-unsigned int vn_vbo[2];
-
-GLuint loc1[2], loc2[2], loc3[2];
+GLuint loc1, loc2, loc3;
 GLfloat rotate_y = 0.0f;
 
 glm::mat4 model;
@@ -255,20 +252,20 @@ void generateObjectBufferMesh(const char* file_name, int meshIndex) {
 	mesh_data[meshIndex] = load_mesh(file_name);
 	
 	// Find attributes
-	loc1[meshIndex] = glGetAttribLocation(shaderProgramID, "vertex_position");
-	loc2[meshIndex] = glGetAttribLocation(shaderProgramID, "vertex_normal");
-	loc3[meshIndex] = glGetAttribLocation(shaderProgramID, "vertex_texture");
+	loc1 = glGetAttribLocation(shaderProgramID, "vertex_position");
+	loc2 = glGetAttribLocation(shaderProgramID, "vertex_normal");
+	loc3 = glGetAttribLocation(shaderProgramID, "vertex_texture");
 
 	// Setup vertex positions VBO
-	vp_vbo[meshIndex] = 0;
-	glGenBuffers(1, &vp_vbo[meshIndex]);
-	glBindBuffer(GL_ARRAY_BUFFER, vp_vbo[meshIndex]);
+	unsigned int vp_vbo = 0;
+	glGenBuffers(1, &vp_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vp_vbo);
 	glBufferData(GL_ARRAY_BUFFER, mesh_data[meshIndex].mPointCount * sizeof(glm::vec3), &mesh_data[meshIndex].mVertices[0], GL_STATIC_DRAW);
 
 	// Setup vertex normals VBO
-	vn_vbo[meshIndex] = 0;
-	glGenBuffers(1, &vn_vbo[meshIndex]);
-	glBindBuffer(GL_ARRAY_BUFFER, vn_vbo[meshIndex]);
+	unsigned int vn_vbo = 0;
+	glGenBuffers(1, &vn_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vn_vbo);
 	glBufferData(GL_ARRAY_BUFFER, mesh_data[meshIndex].mPointCount * sizeof(glm::vec3), &mesh_data[meshIndex].mNormals[0], GL_STATIC_DRAW);
 
 	//	This is for texture coordinates which you don't currently need, so I have commented it out
@@ -277,14 +274,12 @@ void generateObjectBufferMesh(const char* file_name, int meshIndex) {
 	//	glBindBuffer (GL_ARRAY_BUFFER, vt_vbo);
 	//	glBufferData (GL_ARRAY_BUFFER, monkey_head_data.mTextureCoords * sizeof (vec2), &monkey_head_data.mTextureCoords[0], GL_STATIC_DRAW);
 
-	glBindVertexArray(mesh_vaos[meshIndex]);
-
-	glEnableVertexAttribArray(loc1[meshIndex]);
-	glBindBuffer(GL_ARRAY_BUFFER, vp_vbo[meshIndex]);
-	glVertexAttribPointer(loc1[meshIndex], 3, GL_FLOAT, GL_FALSE, 0, NULL);
-	glEnableVertexAttribArray(loc2[meshIndex]);
-	glBindBuffer(GL_ARRAY_BUFFER, vn_vbo[meshIndex]);
-	glVertexAttribPointer(loc2[meshIndex], 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	glEnableVertexAttribArray(loc1);
+	glBindBuffer(GL_ARRAY_BUFFER, vp_vbo);
+	glVertexAttribPointer(loc1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	glEnableVertexAttribArray(loc2);
+	glBindBuffer(GL_ARRAY_BUFFER, vn_vbo);
+	glVertexAttribPointer(loc2, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 
 	//	This is for texture coordinates which you don't currently need, so I have commented it out
 	//	glEnableVertexAttribArray (loc3);
@@ -390,7 +385,7 @@ void display() {
 	// Pumpkin #1.5
 	// Child of pumpkin #1
 	glm::mat4 modelChild5;
-	modelChild5 = glm::rotate(modelChild5, -rotate_y, glm::vec3(0.0f, 1.0f, 0.0f));
+	modelChild5 = glm::rotate(modelChild5, rotate_y, glm::vec3(0.0f, 1.0f, 0.0f));
 	modelChild5 = glm::translate(modelChild5, glm::vec3(0.0f, 0.4f, 0.0f));
 
 	// Apply the root matrix to the child matrix
@@ -403,14 +398,11 @@ void display() {
 
 	// Bind skull mesh vao
 	glBindVertexArray(mesh_vaos[1]);
-	cout << "binding vao " << mesh_vaos[1] << endl;
-
 
 	// Skull #1.5.1
 	// Child of pumpkin #1.5 - grandchild of pumpkin #1
 	glm::mat4 modelChild6;
-	modelChild6 = glm::translate(modelChild6, glm::vec3(0.0f, 0.4f, 0.0f));
-	modelChild6 = glm::scale(modelChild6, glm::vec3(0.7f, 0.7f, 0.7f));
+	modelChild6 = glm::translate(modelChild6, glm::vec3(0.0f, 0.5f, 0.0f));
 
 	// Apply the root matrix and the parent matrix to the child matrix
 	glm::mat4 global6 = model * modelChild5 * modelChild6;
@@ -446,11 +438,19 @@ void init()
 	// Set up the shaders
 	shaderProgramID = CompileShaders();
 
+	// Generate VAO objects
+	// NB: mesh_vaos is global
+	glGenVertexArrays(2, mesh_vaos);
+
 	// Load pumpkin mesh
+	glBindVertexArray(mesh_vaos[0]);
 	generateObjectBufferMesh(PUMPKIN_MESH, 0);
+	glEnableVertexAttribArray(0);
 
 	// Load skull mesh
+	glBindVertexArray(mesh_vaos[1]);
 	generateObjectBufferMesh(SKULL_MESH, 1);
+	glEnableVertexAttribArray(0);
 
 	// Initialise root model
 	model = glm::rotate(glm::mat4(1.0f), 0.0f, glm::vec3(0.0f, 0.0f, 1.0f));
